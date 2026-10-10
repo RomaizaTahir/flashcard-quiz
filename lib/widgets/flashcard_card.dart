@@ -1,103 +1,102 @@
+
 import 'package:flutter/material.dart';
 import '../models/flashcard.dart';
 
 class FlashcardCard extends StatelessWidget {
-  final Flashcard flashcard;
-  final bool showAnswer;
-  final VoidCallback onShowAnswer;
+  final Flashcard card;
+  final bool isReviewed;
+  final VoidCallback onFavorite;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+  final VoidCallback onReviewed;
 
   const FlashcardCard({
     super.key,
-    required this.flashcard,
-    required this.showAnswer,
-    required this.onShowAnswer,
+    required this.card,
+    required this.isReviewed,
+    required this.onFavorite,
+    required this.onEdit,
+    required this.onDelete,
+    required this.onReviewed,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      constraints: const BoxConstraints(
-        minHeight: 300,
-      ),
-      padding: const EdgeInsets.all(28),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [
-            Color(0xFFE9D5FF),
-            Color(0xFFFFD6E7),
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Chip(
+                    label: Text(card.category),
+                  ),
+                ),
+                IconButton(
+                  onPressed: onFavorite,
+                  icon: Icon(
+                    card.isFavorite
+                        ? Icons.favorite
+                        : Icons.favorite_border,
+                    color: Colors.pink,
+                  ),
+                ),
+                PopupMenuButton<String>(
+                  onSelected: (value) {
+                    if (value == 'edit') onEdit();
+                    if (value == 'delete') onDelete();
+                  },
+                  itemBuilder: (context) => const [
+                    PopupMenuItem(
+                      value: 'edit',
+                      child: Text('Edit'),
+                    ),
+                    PopupMenuItem(
+                      value: 'delete',
+                      child: Text('Delete'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              card.question,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text('Answer: ${card.answer}'),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Icon(
+                  isReviewed
+                      ? Icons.check_circle
+                      : Icons.circle_outlined,
+                  color: isReviewed ? Colors.green : Colors.grey,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    isReviewed ? 'Reviewed' : 'Not reviewed',
+                  ),
+                ),
+                TextButton(
+                  onPressed: onReviewed,
+                  child: Text(
+                    isReviewed ? 'Mark again' : 'Mark reviewed',
+                  ),
+                ),
+              ],
+            ),
           ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.purple.withOpacity(0.15),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            showAnswer
-                ? Icons.lightbulb_rounded
-                : Icons.help_outline_rounded,
-            size: 55,
-            color: const Color(0xFF9C27B0),
-          ),
-
-          const SizedBox(height: 25),
-
-          Text(
-            showAnswer ? "Answer" : "Question",
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF8E24AA),
-            ),
-          ),
-
-          const SizedBox(height: 15),
-
-          Text(
-            showAnswer ? flashcard.answer : flashcard.question,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 23,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF4A235A),
-            ),
-          ),
-
-          const SizedBox(height: 30),
-
-          ElevatedButton.icon(
-            onPressed: onShowAnswer,
-            icon: Icon(
-              showAnswer
-                  ? Icons.visibility_off
-                  : Icons.visibility,
-            ),
-            label: Text(
-              showAnswer ? "Hide Answer" : "Show Answer",
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFE91E63),
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 24,
-                vertical: 14,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
