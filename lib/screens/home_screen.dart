@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 import 'dart:math';
 
@@ -254,7 +253,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     final nameController = TextEditingController();
-
+    if (!mounted) return;
     final name = await showDialog<String>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -407,7 +406,7 @@ class _HomeScreenState extends State<HomeScreen> {
           physics: const NeverScrollableScrollPhysics(),
           crossAxisSpacing: 12,
           mainAxisSpacing: 12,
-          childAspectRatio: 1.35,
+          childAspectRatio: 1.20,
           children: [
             _statCard('Total Cards', '${_cards.length}', Icons.style),
             _statCard('Reviewed', '$reviewed', Icons.check_circle),
@@ -683,7 +682,7 @@ class _HomeScreenState extends State<HomeScreen> {
           'Settings',
           style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 18),
         Card(
           child: SwitchListTile(
             secondary: Icon(Icons.dark_mode, color: _purple),

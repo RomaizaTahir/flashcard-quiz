@@ -27,9 +27,9 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/app_icon.png
+    - assets/icon_romi.png
 
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/app_icon.png"
+  image_path: "assets/icon_romi.png"
