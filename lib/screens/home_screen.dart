@@ -246,48 +246,12 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+
   Future<void> _startQuiz() async {
     if (_cards.isEmpty) {
       _message('Add flashcards before starting a quiz.');
       return;
     }
-
-    final nameController = TextEditingController();
-    if (!mounted) return;
-    final name = await showDialog<String>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Who is taking the quiz?'),
-        content: TextField(
-          controller: nameController,
-          autofocus: true,
-          textCapitalization: TextCapitalization.words,
-          decoration: const InputDecoration(
-            labelText: 'Enter your name',
-            hintText: 'e.g. Romaiza',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () {
-              final value = nameController.text.trim();
-              if (value.isNotEmpty) {
-                Navigator.pop(dialogContext, value);
-              }
-            },
-            child: const Text('Start Quiz'),
-          ),
-        ],
-      ),
-    );
-
-    nameController.dispose();
-
-    if (name == null || name.trim().isEmpty || !mounted) return;
 
     final questions = _cards
         .where((card) => card.options.length >= 2)
@@ -299,40 +263,104 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    final result = await Navigator.push<Map<String, dynamic>>(
-      context,
-      MaterialPageRoute(
-        builder: (_) => QuizScreen(
-          name: name.trim(),
-          questions: questions,
-        ),
-      ),
-    );
+    final nameController = TextEditingController();
 
-    if (result == null || !mounted) return;
+    try {
+      final name = await showDialog<String>(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) {
+          return AlertDialog(
+            title: const Text('Who is taking the quiz?'),
+            content: TextField(
+              controller: nameController,
+              autofocus: true,
+              textCapitalization: TextCapitalization.words,
+              textInputAction: TextInputAction.done,
+              decoration: const InputDecoration(
+                labelText: 'Enter your name',
+                hintText: 'e.g. Romaiza',
+              ),
+              onSubmitted: (value) {
+                if (value.trim().isNotEmpty) {
+                  Navigator.pop(dialogContext, value.trim());
+                }
+              },
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(dialogContext);
+                },
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: () {
+                  final value = nameController.text.trim();
 
-    final now = DateTime.now();
-    final entry = <String, dynamic>{
-      'name': name.trim(),
-      'score': result['score'] as int,
-      'total': result['total'] as int,
-      'percentage': result['percentage'] as int,
-      'date': now.toIso8601String(),
-    };
+                  if (value.isEmpty) {
+                    ScaffoldMessenger.of(dialogContext).showSnackBar(
+                      const SnackBar(
+                        content: Text('Please enter your name first.'),
+                      ),
+                    );
+                    return;
+                  }
 
-    setState(() {
-      _history.insert(0, entry);
-      _lastScore = entry['percentage'] as int;
-      if (_lastScore > _bestScore) {
-        _bestScore = _lastScore;
+                  Navigator.pop(dialogContext, value);
+                },
+                child: const Text('Start Quiz'),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (name == null || name.trim().isEmpty || !mounted) {
+        return;
       }
-    });
 
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_lastKey, _lastScore);
-    await prefs.setInt(_bestKey, _bestScore);
-    await _saveHistory();
+      final result = await Navigator.push<Map<String, dynamic>>(
+        context,
+        MaterialPageRoute(
+          builder: (_) => QuizScreen(
+            name: name,
+            questions: questions,
+          ),
+        ),
+      );
+
+      if (result == null || !mounted) return;
+
+      final now = DateTime.now();
+
+      final entry = <String, dynamic>{
+        'name': name,
+        'score': result['score'] as int,
+        'total': result['total'] as int,
+        'percentage': result['percentage'] as int,
+        'date': now.toIso8601String(),
+      };
+
+      setState(() {
+        _history.insert(0, entry);
+        _lastScore = entry['percentage'] as int;
+
+        if (_lastScore > _bestScore) {
+          _bestScore = _lastScore;
+        }
+      });
+
+      final prefs = await SharedPreferences.getInstance();
+
+      await prefs.setInt(_lastKey, _lastScore);
+      await prefs.setInt(_bestKey, _bestScore);
+      await _saveHistory();
+    } finally {
+      nameController.dispose();
+    }
   }
+
 
   void _message(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
